@@ -21,6 +21,8 @@ test("search preserves sorting @11-search-board AC5", async ({ page, request }) 
   await page.getByRole("button", { name: "Title" }).click();
   await page.getByRole("search", { name: "Search bugs by title" }).fill(prefix);
 
+  // Scope rows to this test's prefix: other bugs may exist, so nth(0)/nth(1) are only
+  // meaningful within our own two rows (toHaveCount(2) confirms the filter finished).
   const matchingRows = page.locator("tbody tr").filter({ hasText: prefix });
   await expect(matchingRows).toHaveCount(2);
   await expect(matchingRows.nth(0)).toContainText(`${prefix}-alpha`);

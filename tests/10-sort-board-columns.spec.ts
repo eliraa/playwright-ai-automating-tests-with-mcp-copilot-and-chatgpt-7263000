@@ -20,6 +20,8 @@ async function seedSortBugs(request: Parameters<typeof bugs.create>[0]) {
 }
 
 function sortedRows(page: import("@playwright/test").Page, prefix: string) {
+  // Filter by this test's unique prefix so other bugs on the shared board cannot change
+  // the row positions that nth()/first() rely on.
   return page.locator("tbody tr[role='button']").filter({ hasText: prefix });
 }
 
@@ -52,6 +54,8 @@ test("clicking the active column toggles sort direction @10-sort-board-columns A
 });
 
 test("only one column has an active sort indicator @10-sort-board-columns AC4", async ({ page }) => {
+  // Names match as case-insensitive substrings by default, so short labels like 'ID' could
+  // hit other buttons; exact: true pins each click to the intended column header.
   await page.getByRole("button", { name: "Owner", exact: true }).click();
   await page.getByRole("button", { name: "Severity", exact: true }).click();
   await expect(page.getByRole("columnheader", { name: /Severity/ })).toHaveAttribute("aria-sort", "ascending");

@@ -14,5 +14,6 @@ test("X closes the create-bug modal without saving @06-create-bug AC5", async ({
   await dialog.getByRole("button", { name: "Close" }).click();
   await expect(dialog).toBeHidden();
   await page.reload();
+  // exact: true avoids substring matches; toHaveCount(0) retries until the bug is absent.
   await expect(page.getByText(title, { exact: true })).toHaveCount(0);
 });

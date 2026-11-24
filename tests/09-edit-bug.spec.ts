@@ -52,6 +52,8 @@ test("clicking edit backdrop preserves changes @09-edit-bug AC4", async ({ page,
   await page.getByText(bug.title, { exact: true }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Title").fill("Unsaved title");
+  // Click by coordinates in the corner: the backdrop has no role or label to target,
+  // and clicking the dialog's own locator would never hit the backdrop.
   await page.mouse.click(8, 8);
   await expect(dialog).toBeVisible();
   await expect(dialog.getByLabel("Title")).toHaveValue("Unsaved title");
@@ -66,6 +68,8 @@ test("saving edit changes persists the new value @09-edit-bug AC5", async ({ pag
   await dialog.getByLabel("Title").fill(updatedTitle);
   await dialog.getByRole("button", { name: "Save" }).click();
   await expect(dialog).toBeHidden();
+  // Assert on the API response, not the UI: the board could show the new title from client
+  // state even if the save never reached the server.
   const response = await request.get(`/api/bugs/${bug.id}`);
   expect((await response.json()).title).toBe(updatedTitle);
 });

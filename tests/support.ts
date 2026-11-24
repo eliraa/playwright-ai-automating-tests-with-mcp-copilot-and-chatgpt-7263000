@@ -45,6 +45,8 @@ export function createBugTracker() {
 
   return {
     async create(request: APIRequestContext, input: BugInput): Promise<CreatedBug> {
+      // Seed through the API instead of the UI: it is much faster and keeps unrelated tests
+      // from failing when the create-bug form itself is broken.
       const response = await request.post("/api/bugs", {
         data: {
           title: input.title,
@@ -65,6 +67,8 @@ export function createBugTracker() {
       bugIds.delete(id);
     },
     async cleanup(request: APIRequestContext): Promise<void> {
+      // Delete only the bugs this test created (tracked by id) so parallel tests and the
+      // shared DB are not affected; a failed delete throws so leaked data is noticed.
       for (const id of bugIds) {
         const response = await request.delete(`/api/bugs/${id}`);
         if (!response.ok()) {

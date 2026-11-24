@@ -31,6 +31,8 @@ test("board shows each bug's ID, severity, title, and owner @07-bug-board AC2", 
 });
 
 test("board keeps its table when there are no bugs @07-bug-board AC3", async ({ page }) => {
+  // Stub the API with an empty list: the shared DB may already hold bugs, so a real
+  // empty board cannot be guaranteed otherwise.
   await page.route("**/api/bugs", (route) => route.fulfill({ json: [] }));
   await page.reload();
   await expect(page.getByRole("table", { name: "Bugs" })).toBeVisible();

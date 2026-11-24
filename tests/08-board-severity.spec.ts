@@ -17,9 +17,12 @@ test("board severity badges use distinct severity classes and design tokens @08-
   const low = await bugs.create(request, { title: `color-low-${Date.now()}`, severity: "low" });
   await page.reload();
 
+  // Badges are not unique on a shared board. filter({hasText}) guards against a wrong element
+  // carrying the data attribute, and .last() picks the newest row, i.e. the bug created here.
   const highBadge = page.locator('[data-severity="HIGH"]').filter({ hasText: "HIGH" }).last();
   const midBadge = page.locator('[data-severity="MID"]').filter({ hasText: "MID" }).last();
   const lowBadge = page.locator('[data-severity="LOW"]').filter({ hasText: "LOW" }).last();
+  // Wait for our rows to render first so the badge assertions below do not race the table load.
   await expect(page.getByText(high.title, { exact: true })).toBeVisible();
   await expect(page.getByText(mid.title, { exact: true })).toBeVisible();
   await expect(page.getByText(low.title, { exact: true })).toBeVisible();

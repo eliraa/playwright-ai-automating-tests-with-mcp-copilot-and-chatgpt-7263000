@@ -31,6 +31,8 @@ test("edit modal can change a bug's state @13-bug-status AC2", async ({ page, re
   await expect(dialog.getByLabel("State")).toHaveValue("open");
   await dialog.getByLabel("State").selectOption("closed");
   await dialog.getByRole("button", { name: "Save" }).click();
+  // Check the stored state through the API (the server returns it uppercased) instead of the UI,
+  // since the Open view hides closed bugs.
   const response = await request.get(`/api/bugs/${bug.id}`);
   expect((await response.json()).state).toBe("CLOSED");
 });
@@ -38,10 +40,12 @@ test("edit modal can change a bug's state @13-bug-status AC2", async ({ page, re
 test("Open is the default board state filter @13-bug-status AC3", async ({ page, request }) => {
   const open = await bugs.create(request, { title: `open-default-${Date.now()}` });
   const closed = await bugs.create(request, { title: `closed-default-${Date.now()}` });
+  // Close the bug through the API: faster and independent of the edit modal, which has its own test (AC2).
   await request.put(`/api/bugs/${closed.id}`, {
     data: { ...closed, state: "closed" },
   });
   await page.reload();
+  // The filter buttons expose no aria-pressed, so the active style class is the only observable selected state.
   await expect(page.getByRole("button", { name: "Open", exact: true })).toHaveClass(/bg-primary/);
   await expect(page.getByText(open.title, { exact: true })).toBeVisible();
   await expect(page.getByText(closed.title, { exact: true })).toHaveCount(0);
