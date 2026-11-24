@@ -42,7 +42,7 @@ Files are in `tests/`. "Claimed" means the test's tag names that AC.
 
 ### 02 User accounts
 | AC | Test | Status |
-| --- | --- | --- |
+| --- | --- | --- |   
 | AC1 `users.json` in project root | none tagged. Every test reads `../users.json` | Covered (implicit, untagged) |
 | AC2 Username and password per account | `02-user-accounts.spec.ts:22` | Partially. `expect.any(String)` accepts `""` (F17) |
 | AC3 Unique usernames | `:17` | Covered |
