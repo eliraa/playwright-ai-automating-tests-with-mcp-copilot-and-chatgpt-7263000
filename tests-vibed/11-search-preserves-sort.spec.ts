@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { createBugTracker, login } from "./support";
+import { createBugTracker, login } from "../tests/test-helpers";
 
 const bugs = createBugTracker();
 

@@ -158,7 +158,7 @@ Files are in `tests/`. "Claimed" means the test's tag names that AC.
 
 ### Tests with no AC, duplicates and mis-tags
 - **`example.spec.ts`**: the Playwright demo. It hits `playwright.dev` and has no AC. Delete it (F20).
-- **`create-bug.spec.ts`**: covers 06 AC3 but is not named like its siblings. It duplicates the `users.json` loader and login from `support.ts` (F3).
+- **`create-bug.spec.ts`**: covers 06 AC3 but is not named like its siblings. It duplicates the `users.json` loader and login from `test-helpers.ts` (F3).
 - **`05-logout.spec.ts:27` (AC4)** duplicates `:13` (AC2).
 - **`07-bug-board.spec.ts:40` (AC4)** duplicates most of `:20` (AC2).
 - **`08-board-severity.spec.ts:14`** lists AC1–AC4 in one test, so a failure doesn't say which AC broke.
@@ -201,7 +201,7 @@ Nothing waits for the PUT. The modal closes only after the PUT returns (`EditBug
 - It checks only that the title appears. Severity, owner and description are never verified as saved, though the spec says "saved with the entered data".
 - It uses its own title and description, not the spec's ("Login fails with special characters", with `<` and `>` in the description). The special-character case is the point of that scenario.
 - `Date.now()` bugs are created through the UI and never deleted. `13-bug-status.spec.ts:14-24` does the same.
-- It re-implements login and the `users.json` loader (`:4-23`) instead of using `support.ts`. The file name doesn't follow the `NN-feature-*` pattern.
+- It re-implements login and the `users.json` loader (`:4-23`) instead of using `test-helpers.ts`. The file name doesn't follow the `NN-feature-*` pattern.
 
 **Fix:**
 - Move it to `06-create-bug-save.spec.ts` and use the spec's data.
@@ -255,7 +255,7 @@ await expect(badge).toHaveCSS("color", "rgb(184, 74, 46)");
 
 **F16. Magic coordinates and implicit overlay assumption** (`06-create-bug-backdrop.spec.ts:12`, `09-edit-bug.spec.ts:55`). `page.mouse.click(8, 8)` depends on the viewport and on the overlay covering that point. The dialog element is the full-screen overlay (`fixed inset-0`), so `dialog.click({ position: { x: 5, y: 5 } })` expresses the intent. (Severity Low–Medium.)
 
-**F17. `02-user-accounts.spec.ts` (Low–Medium).** It uses its own loader instead of `support.ts`, and the default credentials are written into the test (`:14`) instead of being read from `users.json`. `expect.any(String)` accepts empty strings. **Fix:** import `users` from `support.ts`, assert `typeof === "string" && length > 0`, and avoid repeating credentials in source.
+**F17. `02-user-accounts.spec.ts` (Low–Medium).** It uses its own loader instead of `test-helpers.ts`, and the default credentials are written into the test (`:14`) instead of being read from `users.json`. `expect.any(String)` accepts empty strings. **Fix:** import `users` from `test-helpers.ts`, assert `typeof === "string" && length > 0`, and avoid repeating credentials in source.
 
 **F10b. Shared state: 20+ tests rely on unique `Date.now()` names.** Many files have the same pattern: `fullyParallel: true`, one SQLite file, cleanup through unauthenticated API calls. `bugs.cleanup` throws on a non-OK response, which can replace the real failure with a cleanup error. `12-delete-bug.spec.ts:26` calls `bugs.forget` before the assertions, so a failed delete leaves the bug behind. **Fix:** a worker-scoped fixture with unique prefixes, a per-worker database or a reset endpoint, and a cleanup that tolerates 404.
 
@@ -273,7 +273,7 @@ await expect(badge).toHaveCSS("color", "rgb(184, 74, 46)");
 
 **F23. `fill()` doesn't simulate typing.** The spec says filtering happens as the user types. `fill()` sets the value in one step. **Fix:** use `pressSequentially` in at least one search test.
 
-**F24. Login is repeated through the UI in 20 files** (`beforeEach(login)`). It works, but costs a page load per test and hides login failures, because `login()` (`support.ts:19-24`) never asserts success. **Fix:** a setup project that saves `storageState` (the session is kept in `localStorage`), or a fixture. Keep UI login only in `03-login.spec.ts`. Add `await expect(page).toHaveURL(/\/board$/)` at the end of `login()`.
+**F24. Login is repeated through the UI in 20 files** (`beforeEach(login)`). It works, but costs a page load per test and hides login failures, because `login()` (`test-helpers.ts:19-24`) never asserts success. **Fix:** a setup project that saves `storageState` (the session is kept in `localStorage`), or a fixture. Keep UI login only in `03-login.spec.ts`. Add `await expect(page).toHaveURL(/\/board$/)` at the end of `login()`.
 
 **F25. Tags aren't greppable.** `AC7` in the title isn't a Playwright tag (`@06-create-bug` is). **Fix:** use `{ tag: "@06-create-bug", annotation: { type: "AC", description: "AC7" } }`, so reports can group by AC. Better still, add IDs to the spec files.
 
@@ -330,10 +330,10 @@ Also flagged for the same question: the severity colour test (F4) would not fail
 1. Fix F1 (use `expect.poll` on `GET /api/bugs`). Three tests, a few lines each.
 2. Add `await expect(dialog).toBeHidden()` before the API read in `13-bug-status.spec.ts:34` (F2b).
 3. Stub the API in 13 AC7 (F2).
-4. Delete `example.spec.ts`. Rename `create-bug.spec.ts` to `06-create-bug-save.spec.ts`, import from `support.ts` and clean up created bugs.
+4. Delete `example.spec.ts`. Rename `create-bug.spec.ts` to `06-create-bug-save.spec.ts`, import from `test-helpers.ts` and clean up created bugs.
 5. Add `{ exact: true }` to the non-exact `getByRole`/`getByLabel` calls (F21).
 6. Add `toHaveURL(/\/login$/)` to the five failed-login tests (F6).
-7. In `login()` (`support.ts`), assert the board URL at the end.
+7. In `login()` (`test-helpers.ts`), assert the board URL at the end.
 8. Replace `mouse.click(8, 8)` with a click on the dialog element at a position (F16).
 9. Replace class-name assertions with computed-CSS or `aria-pressed` assertions (F4, F5, F8). The app change for `aria-pressed` is one attribute per button.
 10. Add AC IDs to the specs and use Playwright `tag`/`annotation` (F25).
